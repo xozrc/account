@@ -10,8 +10,18 @@ const (
 type Account struct {
 	Id         int64
 	SecondId   string
-	Channel    AccountType
+	Channel    int
 	UniqueCode string
 	Name       string
-	Password   string
+}
+
+func NewAccount(id int64, secondId string, channel int, uniqueCode string, name string) (acc *Account) {
+	acc = &Account{
+		Id:         id,
+		SecondId:   secondId,
+		Channel:    channel,
+		UniqueCode: uniqueCode,
+		Name:       name,
+	}
+	return
 }

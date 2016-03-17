@@ -5,7 +5,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
-	accountRouter "github.com/xozrc/account/router"
+	"github.com/xozrc/account/account"
 	accountServer "github.com/xozrc/account/server"
 	"os"
 	"runtime"
@@ -17,7 +17,7 @@ var (
 
 func init() {
 	//init router
-	router = accountRouter.NewRouter(nil)
+	router = account.NewRouter(nil)
 
 }
 
