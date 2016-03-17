@@ -5,9 +5,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
-	accountHandler "github.com/xozrc/account/handler"
+	accountRouter "github.com/xozrc/account/router"
 	accountServer "github.com/xozrc/account/server"
 	"os"
+	"runtime"
 )
 
 var (
@@ -15,17 +16,26 @@ var (
 )
 
 func init() {
-	router = accountHandler.Router
+	//init router
+	router = accountRouter.NewRouter(nil)
+
 }
 
 func Main() {
 
 	cfg := newConfig()
+
+	//set cpu
+	maxProcs := runtime.GOMAXPROCS(0)
+	log.Infof("setting maximum number of CPUs to %d, total number of available CPUs is %d", maxProcs, runtime.NumCPU())
+
 	stoped, err := startLogin(cfg)
 	if err != nil {
 		log.Errorf("start login server error %s", err.Error())
 		os.Exit(1)
 	}
+
+	//todo:register interrupt
 
 	//stop
 	<-stoped
