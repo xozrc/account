@@ -6,18 +6,19 @@ import (
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/xozrc/rest"
+	"golang.org/x/net/context"
 )
 
 var _ = fmt.Print
 
 const (
-	registerPath    = "/register"
-	loginPath       = "/login"
-	loginUniqueCode = "/loginUniqueCode"
+	registerPath = "/register.json"
+	loginPath    = "/login.json"
 )
 
-func NewRouter(b Backend) (r *mux.Router) {
+func NewRouter(ctx context.Context) (r *mux.Router) {
 	r = &mux.Router{}
-	r.HandleFunc(loginPath, Login(b))
+	r.Handle(loginPath, rest.RestHandler(ctx, rest.HandleFunc(Login)))
 	return r
 }

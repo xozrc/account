@@ -5,18 +5,19 @@ import (
 )
 
 type Backend interface {
-	Login(channel int, secondId string, uniqueCode string) (*types.Account, error)
-	LoginUniqueCode(uniqueCode string) (*types.Account, error)
+	AccountByTypeAndSecondId(channel int, secondId string) *types.Account
+	AccountByUniqueCode(uniqueCode string) *types.Account
 }
 
+//db
 type backend struct {
 }
 
-func (b *backend) Login(channel int, id string, uniqueCode string) (acc *types.Account, err error) {
+func (b *backend) AccountByTypeAndSecondId(at int, secondId string) (acc *types.Account) {
 	return
 }
 
-func (b *backend) LoginUniqueCode(uniqueCode string) (acc *types.Account, err error) {
+func (b *backend) AccountByUniqueCode(uniqueCode string) (acc *types.Account) {
 	return
 }
 
