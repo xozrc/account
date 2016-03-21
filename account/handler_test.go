@@ -4,54 +4,39 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	_ "strings"
 	"testing"
 )
 
 import (
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/xozrc/account/account"
-	"github.com/xozrc/account/pkg/stringutil"
-	"github.com/xozrc/account/types"
 	"golang.org/x/net/context"
+)
+
+import (
+	"github.com/xozrc/account/account"
+	"github.com/xozrc/account/account/mock_account"
+
+	"github.com/xozrc/account/types"
 	"github.com/xozrc/rest"
 )
 
-type testBackend struct {
-	store []*types.Account
-}
-
-func (b *testBackend) AccountByTypeAndSecondId(channel int,secondId string)*types.Account {
-	for _, acc := range b.store {
-		if channel == acc.Channel && strings.EqualFold(acc.SecondId, secondId) {
-			return acc
-		}
-	}
-	return nil
-}
-
-func (b *testBackend) AccountByUniqueCode(uniqueCode string) *types.Account){
-
-	for _, acc := range b.store {
-		if strings.EqualFold(uniqueCode, acc.UniqueCode) {
-			return acc
-		}
-	}
-	return nil
-}
-
-func NewBackend(s []*types.Account) account.Backend {
-	return &testBackend{store: s}
-}
-
 func TestLogin(t *testing.T) {
-	//todo :mock db and redis
-	ctx := context.TODO()
-	as := account.NewAccountService()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	cctx := account.WithAccountService(ctx,as)
-	ts := httptest.NewServer(rest.RestHandler(cctx, rest.HandleFunc(Login))
+	mb := mock_account.NewMockAccountBackend(ctrl)
+
+	ctx := context.TODO()
+	cctx := account.WithAccountBackend(ctx, mb)
+
+	ts := httptest.NewServer(rest.RestHandler(cctx, rest.HandleFunc(account.Login)))
 	defer ts.Close()
+
+	//visitor account
+	testVisitor := types.NewAccount(1, "", int(types.Visitor), "visitor", "visitor_name")
+	mb.EXPECT().Login(types.AccountType(testVisitor.AccountType), testVisitor.SecondId, testVisitor.UniqueCode).Return(testVisitor, nil)
 
 	content := bytes.NewBufferString("")
 	_, err := http.Post(ts.URL, "application/json", content)

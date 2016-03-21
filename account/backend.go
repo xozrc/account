@@ -2,26 +2,37 @@ package account
 
 import (
 	"github.com/xozrc/account/types"
+	"golang.org/x/net/context"
 )
 
-type Backend interface {
-	AccountByTypeAndSecondId(channel int, secondId string) *types.Account
-	AccountByUniqueCode(uniqueCode string) *types.Account
+const (
+	accountBackendKey = "AccountBackend"
+)
+
+type AccountBackend interface {
+	Login(at types.AccountType, secondId string, uniqueCode string) (acc *types.Account, err error)
 }
 
-//db
-type backend struct {
+type accountBackend struct {
 }
 
-func (b *backend) AccountByTypeAndSecondId(at int, secondId string) (acc *types.Account) {
+func (ab *accountBackend) Login(at types.AccountType, secondId string, uniqueCode string) (acc *types.Account, err error) {
 	return
 }
 
-func (b *backend) AccountByUniqueCode(uniqueCode string) (acc *types.Account) {
-	return
-}
-
-func NewBackend() Backend {
-	b := &backend{}
+func NewAccountBackend() AccountBackend {
+	b := &accountBackend{}
 	return b
+}
+
+func AccountBackendInContext(ctx context.Context) (ab AccountBackend) {
+	tab := ctx.Value(accountBackendKey)
+	ab, _ = tab.(AccountBackend)
+	return
+
+}
+
+func WithAccountBackend(ctx context.Context, ab AccountBackend) context.Context {
+	tc := context.WithValue(ctx, accountBackendKey, ab)
+	return tc
 }

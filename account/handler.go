@@ -12,12 +12,14 @@ import (
 
 var _ = fmt.Print
 
+//request form
 type LoginForm struct {
 	AccountType int
 	SecondId    string
 	UniqueCode  string
 }
 
+//request result
 type LoginReturnObj struct {
 	AccountType int    `json:"accountType"`
 	SecondId    string `json:"secondId"`
@@ -36,16 +38,16 @@ func loginReturnObjForAccount(acc *types.Account) (lrj *LoginReturnObj) {
 func Login(ctx context.Context, rw http.ResponseWriter, req *http.Request) (code int, result interface{}, err error) {
 
 	lf := &LoginForm{}
-	lf.AccountType = 1
-	lf.SecondId = "asd"
-	lf.UniqueCode = "as"
+	lf.AccountType = int(types.Visitor)
+	lf.SecondId = ""
+	lf.UniqueCode = "visitor"
 
-	as := AccountServiceInContext(ctx)
-	if as == nil {
+	ab := AccountBackendInContext(ctx)
+	if ab == nil {
 		return http.StatusInternalServerError, nil, nil
 	}
 
-	acc, err := as.Login(types.AccountType(lf.AccountType), lf.SecondId, lf.UniqueCode)
+	acc, err := ab.Login(types.AccountType(lf.AccountType), lf.SecondId, lf.UniqueCode)
 	if err != nil {
 		return http.StatusInternalServerError, nil, nil
 	}
