@@ -37,7 +37,7 @@ func loginReturnObjForAccount(acc *types.Account) (lrj *LoginReturnObj) {
 }
 
 //rest login handlers
-func Login(ctx context.Context, rw http.ResponseWriter, req *http.Request, next rest.ContextHandler) {
+func Login(ctx context.Context, rw http.ResponseWriter, req *http.Request) {
 
 	lfi := rest.FormInContext(ctx)
 	if lfi == nil {
@@ -68,5 +68,5 @@ func Login(ctx context.Context, rw http.ResponseWriter, req *http.Request, next 
 }
 
 func LoginHTTPHandler(ctx context.Context) http.Handler {
-	return rest.HTTPHandlers(ctx, rest.BindFormHandler(&LoginForm{}), rest.MiddlewareContextHandlerFunc(Login))
+	return rest.HTTPHandlers(ctx, rest.ContextHandlerFunc(Login), rest.BindFormHandler(&LoginForm{}))
 }
