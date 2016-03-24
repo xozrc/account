@@ -7,6 +7,8 @@ import (
 
 import (
 	"github.com/xozrc/account/types"
+	"github.com/xozrc/pkg/httputils"
+	"github.com/xozrc/rest"
 	"golang.org/x/net/context"
 )
 
@@ -14,9 +16,9 @@ var _ = fmt.Print
 
 //request form
 type LoginForm struct {
-	AccountType int
-	SecondId    string
-	UniqueCode  string
+	AccountType int    `json, form:"accountType"`
+	SecondId    string `json,form:"secondId"`
+	UniqueCode  string `json,form:"uniqueCode"`
 }
 
 //request result
@@ -34,26 +36,37 @@ func loginReturnObjForAccount(acc *types.Account) (lrj *LoginReturnObj) {
 	return
 }
 
-//rest login handler
-func Login(ctx context.Context, rw http.ResponseWriter, req *http.Request) (code int, result interface{}, err error) {
+//rest login handlers
+func Login(ctx context.Context, rw http.ResponseWriter, req *http.Request, next rest.ContextHandler) {
 
-	lf := &LoginForm{}
-	lf.AccountType = int(types.Visitor)
-	lf.SecondId = ""
-	lf.UniqueCode = "visitor"
+	lfi := rest.FormInContext(ctx)
+	if lfi == nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	lf, _ := lfi.(*LoginForm)
+	if lf == nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	ab := AccountBackendInContext(ctx)
 	if ab == nil {
-		return http.StatusInternalServerError, nil, nil
+		rw.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	acc, err := ab.Login(types.AccountType(lf.AccountType), lf.SecondId, lf.UniqueCode)
 	if err != nil {
-		return http.StatusInternalServerError, nil, nil
+		rw.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	//process acc
 	returnObj := loginReturnObjForAccount(acc)
+	httputils.WriteJSON(rw, http.StatusOK, returnObj)
+}
 
-	return http.StatusOK, returnObj, nil
+func LoginHTTPHandler(ctx context.Context) http.Handler {
+	return rest.HTTPHandlers(ctx, rest.BindFormHandler(&LoginForm{}), rest.MiddlewareContextHandlerFunc(Login))
 }
