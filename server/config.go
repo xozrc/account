@@ -1,7 +1,8 @@
 package server
 
-type Config struct{}
+type ServerConfig struct {
+}
 
-func NewConfig() (cfg *Config) {
+func NewServerConfig() (cfg *ServerConfig) {
 	return
 }

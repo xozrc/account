@@ -7,7 +7,7 @@ type Server interface {
 }
 
 type server struct {
-	cfg *Config
+	cfg *ServerConfig
 	//stop notify
 	done chan struct{}
 	//stop server
@@ -41,7 +41,7 @@ func (s *server) StopNotify() <-chan struct{} {
 	return s.done
 }
 
-func NewServer(cfg *Config) (s Server, err error) {
+func NewServer(cfg *ServerConfig) (s Server, err error) {
 	ts := &server{}
 	ts.cfg = cfg
 	ts.done = make(chan struct{})
