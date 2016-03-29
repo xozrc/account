@@ -3,26 +3,30 @@ package daemon
 import (
 	"fmt"
 	"os"
+
 	"runtime"
 )
 
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
-
+	"github.com/gogap/logrus_mate"
 	"github.com/gorilla/mux"
 	"github.com/xozrc/account/account"
 	accountServer "github.com/xozrc/account/server"
+	"github.com/xozrc/pkg/osutils"
 )
 
 var (
 	router *mux.Router
+	irh    osutils.InterruptHooker
+	serv   accountServer.Server
 )
 
 func init() {
 	//init router
 	router = account.NewRouter(nil)
-
+	irh = osutils.NewInterruptHooker()
 }
 
 func Main() {
@@ -45,6 +49,10 @@ func Main() {
 	}
 
 	//todo:register interrupt
+	irh.AddHandler(osutils.InterruptHandlerFunc(stop))
+	go func() {
+		irh.Run()
+	}()
 
 	//stop
 	<-stoped
@@ -55,14 +63,14 @@ func startLogin(cfg *config) (stopNotify <-chan struct{}, err error) {
 	//init config
 	srvCfg := accountServer.NewServerConfig()
 	//init server
-	s, err := accountServer.NewServer(srvCfg)
+	serv, err = accountServer.NewServer(srvCfg)
 	if err != nil {
 		return
 	}
 
 	//start server
-	s.Start()
-	stopNotify = s.StopNotify()
+	serv.Start()
+	stopNotify = serv.StopNotify()
 
 	//listen http
 	ne := negroni.Classic()
@@ -82,14 +90,18 @@ func getListenUrlString(cfg *config) string {
 }
 
 func setupLogging(logFile string) error {
-	// if mateConf, err := logrus_mate.LoadLogrusMateConfig(logFile); err != nil {
-	// 	return
-	// } else {
-	// 	if newMate, err := logrus_mate.NewLogrusMate(mateConf); err != nil {
-	// 		return
-	// 	} else {
-	// 		newMate.Logger("mike").Errorln("I am mike in new logrus mate")
-	// 	}
-	// }
+	if mateConf, err := logrus_mate.LoadLogrusMateConfig(logFile); err != nil {
+		return err
+	} else {
+		if newMate, err := logrus_mate.NewLogrusMate(mateConf); err != nil {
+			return err
+		} else {
+			newMate.Logger("mike").Errorln("I am mike in new logrus mate")
+		}
+	}
 	return nil
+}
+
+func stop() {
+	serv.Stop()
 }

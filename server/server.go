@@ -20,6 +20,9 @@ func (s *server) Start() (err error) {
 }
 
 func (s *server) run() {
+	defer func() {
+		close(s.done)
+	}()
 	for {
 		select {
 		case <-s.stop:
